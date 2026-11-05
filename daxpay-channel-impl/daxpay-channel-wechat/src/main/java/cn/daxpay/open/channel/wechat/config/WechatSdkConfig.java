@@ -13,7 +13,7 @@ import cn.daxpay.open.platform.core.exception.ChannelServiceException;
 ///
 /// ## 验签模式(WxJava 4.8.6.B 默认全公钥模式 fullPublicKeyModel=true)
 /// - **支付公钥新模式**: 凭证配置了 publicKeyId + publicKey 时启用, 免平台证书自动轮换(微信官方推荐)
-/// - publicKeyId 为空时 SDK 直接抛错(不再自动下载平台证书), 凭证必须配齐公钥两件套
+/// - 未配置支付公钥时使用 SDK 平台证书模式, 自动下载/刷新证书并保持响应验签
 public class WechatSdkConfig {
 
     /// 根据通道凭证构建 [WxPayService]
@@ -61,8 +61,16 @@ public class WechatSdkConfig {
         // 商户证书序列号
         config.setCertSerialNo(credential.getCertSerialNo());
 
-        // 支付公钥新模式(优先): 配置了 publicKeyId 则启用, 免平台证书轮换
-        if (StrUtil.isNotBlank(credential.getPublicKeyId())) {
+        // 公钥两件套必须同时配置, 避免不完整配置静默降级到证书模式
+        boolean hasPublicKeyId = StrUtil.isNotBlank(credential.getPublicKeyId());
+        boolean hasPublicKey = StrUtil.isNotBlank(credential.getPublicKey());
+        if (hasPublicKeyId != hasPublicKey) {
+            throw new ChannelServiceException(ChannelErrorCode.INVALID_CONFIG,
+                    "channel.error.wechatInvalidConfig");
+        }
+        // 无公钥时使用 SDK 原生平台证书自动更新与响应验签, 不跳过任何验签
+        config.setFullPublicKeyModel(hasPublicKeyId);
+        if (hasPublicKeyId) {
             config.setPublicKeyId(credential.getPublicKeyId());
             config.setPublicKeyString(credential.getPublicKey());
         }

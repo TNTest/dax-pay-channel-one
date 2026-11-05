@@ -1,8 +1,14 @@
 package cn.daxpay.open.channel;
 
+import cn.daxpay.open.channel.mock.MockChannelAutoConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.AutoConfigurationExcludeFilter;
+import org.springframework.boot.context.TypeExcludeFilter;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.FilterType;
+import org.springframework.context.annotation.Import;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -13,6 +19,12 @@ import java.net.UnknownHostException;
 /// 按 `channel` 字段路由到对应实现(支付宝/微信等)。启动后打印健康检查地址。
 @Slf4j
 @SpringBootApplication
+@ComponentScan(excludeFilters = {
+        @ComponentScan.Filter(type = FilterType.CUSTOM, classes = TypeExcludeFilter.class),
+        @ComponentScan.Filter(type = FilterType.CUSTOM, classes = AutoConfigurationExcludeFilter.class),
+        @ComponentScan.Filter(type = FilterType.REGEX, pattern = "cn\\.daxpay\\.open\\.channel\\.mock\\..*")
+})
+@Import(MockChannelAutoConfig.class)
 public class ChannelServiceApp {
 
     /// 应用入口, 启动 Spring 容器并打印健康检查地址

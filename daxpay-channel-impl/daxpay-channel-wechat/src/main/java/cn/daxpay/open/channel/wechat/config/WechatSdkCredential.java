@@ -10,7 +10,7 @@ import lombok.Data;
 ///
 /// 鉴权模式(WxJava 4.8.6.B 默认全公钥模式 fullPublicKeyModel=true):
 /// - 支付公钥新模式: 配置 publicKeyId + publicKey 启用, 免平台证书自动轮换(微信官方推荐)
-/// - publicKeyId 为空时 SDK 直接抛错(不再自动下载平台证书), 凭证必须配齐公钥两件套
+/// - 支付公钥两项均空时使用平台证书模式, 自动下载/刷新平台证书并保持响应验签
 @Data
 public class WechatSdkCredential {
     /// 微信商户号(服务商模式下为服务商商户号 sp_mchid)
